@@ -52,9 +52,23 @@ confirmed the existing tests still passed.
 
 **What I did:**
 
+I created `tests/test_watchlist.py` and added
+`test_add_to_watchlist_nonexistent_film_raises()`. The test creates an
+isolated in-memory database and a sample user, then calls
+`add_to_watchlist()` with a film ID that is not present.
+
 **Why:**
 
+I modeled the test after
+`test_add_to_collection_nonexistent_film_raises()` in
+`tests/test_collection.py`. This verifies that the watchlist service raises
+the expected `FilmNotFoundError` instead of allowing a database integrity
+error or creating an invalid entry.
+
 **How I verified:**
+
+I ran `pytest tests/test_watchlist.py -v` to confirm the new test passed, then
+ran `pytest tests/ -v` to confirm the full suite still passed.
 
 ## Comment 4 — Default visibility
 
