@@ -30,9 +30,23 @@ existing pytest suite and confirmed that all tests passed.
 
 **What I did:**
 
+I added an `AlreadyInWatchlistError` exception and added a query inside
+`add_to_watchlist()` that checks for an existing `WatchlistEntry` with the
+same `user_id` and `film_id`. If one exists, the service raises the exception
+instead of creating another row.
+
 **Why:**
 
+I followed the same pattern used by `add_to_collection()` in
+`services/collection_service.py`. Checking before insertion gives callers a
+clear domain-specific error and prevents duplicate watchlist entries instead
+of relying only on a database failure.
+
 **How I verified:**
+
+I compared the implementation with the existing collection-service
+deduplication logic, ran the full test suite with `pytest tests/ -v`, and
+confirmed the existing tests still passed.
 
 ## Comment 3 — Missing test
 
