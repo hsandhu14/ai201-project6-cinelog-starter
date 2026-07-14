@@ -2,9 +2,22 @@
 
 ## AI Usage
 
-<!-- Fill in at the end. Explain how AI was used for codebase orientation,
-debugging support, and commit-message verification. Also explain how all
-suggestions were checked against the actual CineLog codebase. -->
+I used AI tools during codebase orientation to compare the watchlist service
+with the existing collection-service patterns. In particular, I used AI to
+help explain how `add_to_collection()` validates film existence, checks for
+duplicates, and raises domain-specific exceptions. I verified that explanation
+against the actual implementation before writing the watchlist version.
+
+I also used AI as a review aid for Comments 4 and 5. I asked for potential
+counterarguments to keeping watchlists public by default and sorting them
+alphabetically. I revised my responses to acknowledge the privacy risk of a
+public default and the discoverability advantage of date-added ordering, while
+keeping my final decisions grounded in CineLog's community and browsing use
+cases.
+
+Finally, I used AI to check whether my Git commit messages followed
+conventional commit format. I verified the suggestions myself and used
+interactive rebase to ensure each commit represented one logical change.
 
 ## Comment 1 — Rename
 
@@ -132,16 +145,133 @@ preference for alphabetical and newest-first sorting.
 
 **What conflicted:**
 
+The watchlist feature branch was based on an older version of the project that
+used integer film IDs, while the updated main branch had migrated film IDs to
+UUIDs.
+
 **How I resolved it:**
 
+I rebased my feature branch onto the updated main branch and updated the
+watchlist code to use UUIDs consistently. I also updated the remaining
+documentation and comments that still referred to integer film IDs.
+
 **How I verified no conflict remains:**
+
+I completed the rebase successfully, ran the full test suite with
+`pytest tests/ -v`, and confirmed the branch history contains no merge
+commits.
+
+## AI Usage
+
+I used AI tools during codebase orientation to compare the watchlist service
+with the existing collection-service patterns. In particular, I used AI to
+help explain how `add_to_collection()` validates film existence, checks for
+duplicates, and raises domain-specific exceptions. I verified that explanation
+against the actual implementation before writing the watchlist version.
+
+I also used AI as a review aid for Comments 4 and 5. I asked for potential
+counterarguments to keeping watchlists public by default and sorting them
+alphabetically. I revised my responses to acknowledge the privacy risk of a
+public default and the discoverability advantage of date-added ordering, while
+keeping my final decisions grounded in CineLog's community and browsing use
+cases.
+
+Finally, I used AI to check whether my Git commit messages followed
+conventional commit format. I verified the suggestions myself and used
+interactive rebase to ensure each commit represented one logical change.
+6. Final PR description
+
+Place this at the bottom of pr-response.md, and use the same content in GitHub:
 
 ## PR Description
 
 ### Feature overview
 
+This pull request adds a watchlist feature to CineLog. Users can add films
+they want to watch later and retrieve their saved watchlist through the
+watchlist service and REST endpoints.
+
+The implementation includes:
+
+- A `WatchlistEntry` model connected to users and films
+- An `add_to_watchlist()` service function
+- Duplicate-entry prevention
+- Validation for nonexistent film IDs
+- A GET endpoint for retrieving a user's watchlist
+- UUID-compatible film references after rebasing onto the updated `main`
+
 ### Design decisions
 
-### Testing performed
+I kept watchlist entries public by default because CineLog is a
+community-oriented film platform and public lists can support discovery and
+future social features. I acknowledge that a private default would provide
+stronger privacy protection, so visibility should be clearly communicated and
+made configurable in a future interface.
+
+I kept watchlists sorted alphabetically by film title. I chose this because a
+watchlist functions primarily as a browse-and-lookup list, and alphabetical
+ordering remains predictable as the list grows. Date-added ordering would
+better highlight recent interest, so supporting multiple sort options would be
+a useful future improvement.
 
 ### Manual testing steps
+
+## Manual Testing Steps
+
+1. Activate the virtual environment:
+
+   ```bash
+   source .venv/Scripts/activate
+   ```
+
+2. Install the project dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the automated test suite to verify all tests pass:
+
+   ```bash
+   pytest tests/ -v
+   ```
+
+4. Start the Flask application:
+
+   ```bash
+   FLASK_APP=app:create_app flask run
+   ```
+
+5. Open a second terminal and create a sample user and film if the database is empty.
+
+6. Add a film to a user's watchlist by sending a POST request to:
+
+   ```
+   POST /watchlist/<user_id>/add
+   ```
+
+   Include the film UUID in the request body.
+
+   **Expected result:** A `201 Created` response containing the newly created watchlist entry.
+
+7. Attempt to add the same film to the user's watchlist again.
+
+   **Expected result:** The service prevents duplicate entries and returns the appropriate error instead of creating a second watchlist entry.
+
+8. Attempt to add a film using a UUID that does not exist.
+
+   **Expected result:** The service raises `FilmNotFoundError` and does not create a watchlist entry.
+
+9. Retrieve the user's watchlist:
+
+   ```
+   GET /watchlist/<user_id>
+   ```
+
+   **Expected result:** The watchlist contains the expected film information and metadata.
+
+10. Verify that all automated tests continue to pass after the changes:
+
+    ```bash
+    pytest tests/ -v
+    ```
